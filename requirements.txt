@@ -1,0 +1,14 @@
+yfinance
+pandas
+numpy
+matplotlib
+seaborn
+statsmodels
+scikit-learn
+tensorflow
+PyPortfolioOpt
+shap
+streamlit
+pytest
+flake8
+joblib
