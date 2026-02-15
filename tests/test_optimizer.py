@@ -1,14 +1,25 @@
 import pytest
 import pandas as pd
 import numpy as np
+import warnings
 from src.optimizer import PortfolioOptimizer
 from src.config import PortfolioConfig
 from src.models import LSTMForecaster
 
+# Suppress the specific pypfopt risk_free_rate warning for clean output
+warnings.filterwarnings("ignore", category=UserWarning, module="pypfopt")
+
 def test_optimization_weights_sum():
     """Test 1: Optimization logic (Weights sum to 1.0)"""
-    dates = pd.date_range(start="2020-01-01", periods=100)
-    data = pd.DataFrame(np.random.rand(100, 3), columns=["TSLA", "BND", "SPY"], index=dates)
+    # Create realistic upward trending prices to ensure returns > risk-free rate
+    dates = pd.date_range(start="2020-01-01", periods=200)
+    # Asset 1 grows 10%, Asset 2 grows 5%, Asset 3 grows 2%
+    data = pd.DataFrame({
+        "TSLA": np.linspace(100, 150, 200) + np.random.normal(0, 2, 200),
+        "BND": np.linspace(100, 105, 200) + np.random.normal(0, 1, 200),
+        "SPY": np.linspace(100, 110, 200) + np.random.normal(0, 1.5, 200)
+    }, index=dates)
+    
     config = PortfolioConfig()
     optimizer = PortfolioOptimizer(data, config)
     weights, perf = optimizer.optimize_sharpe()
@@ -25,7 +36,6 @@ def test_lstm_sequence_generation():
     forecaster = LSTMForecaster(window_size=10)
     data = np.random.rand(50, 1)
     X, y = forecaster.create_sequences(data)
-    # 50 total - 10 window = 40 sequences
     assert X.shape == (40, 10)
     assert y.shape == (40,)
 
